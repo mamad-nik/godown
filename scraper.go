@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/gocolly/colly"
 )
@@ -79,11 +81,29 @@ func getlocalfilesize(filepath string) int64 {
 	return info.Size()
 }
 
+// "http://znucomputer.ir/HTML/Semester6/artificial_intelligence.html"
+// "/home/mamad/Downloads"
+
 func main() {
 	var links []string
-	theurl := "http://znucomputer.ir/HTML/Semester6/artificial_intelligence.html"
-	myfilepath := "/home/mamad/Downloads"
 
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Print("enter URL of the page you want to download from: ")
+	theurl, err := reader.ReadString('\n')
+	errcheck(err)
+
+	theurl = strings.TrimSpace(theurl)
+	fmt.Print("Enter the file path to save the downloaded file: ")
+
+	myfilepath, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading file path:", err)
+		return
+	}
+	myfilepath = strings.TrimSpace(myfilepath)
+
+	fmt.Println(theurl, myfilepath)
 	getLinks(&links, theurl)
 
 	filename := getfilenames(theurl)
