@@ -39,11 +39,11 @@ func getLinks(links *[]string, theurl string) {
 }
 
 func downloadFile(link, myfilepath string) {
-
+	var localSize, actualSize int64
 	if _, err := os.Stat(myfilepath); !os.IsNotExist(err) {
 		// File exists, compare sizes
-		actualSize := getactualfilesize(link)
-		localSize := getlocalfilesize(myfilepath)
+		actualSize = getactualfilesize(link)
+		localSize = getlocalfilesize(myfilepath)
 		if actualSize == localSize {
 			fmt.Printf("Skipping %s, file already downloaded\n", filepath.Base(myfilepath))
 			return
@@ -51,18 +51,33 @@ func downloadFile(link, myfilepath string) {
 			fmt.Printf("Overwriting %s, actual size: %d bytes, local size: %d bytes\n", filepath.Base(myfilepath), actualSize, localSize)
 		}
 	}
+	/*
+	 */
+	c := http.Client{}
+	req, err := http.NewRequest("GET", link, nil)
+	errcheck(err)
 
-	err := os.MkdirAll(filepath.Dir(myfilepath), 0755)
+	s := fmt.Sprintf("bytes 0-%d/%d", localSize, actualSize)
+	fmt.Println(s)
+	req.Header.Add("Content-Range", s)
+
+	r := fmt.Sprintf("bytes=%d-%d", localSize, actualSize-1)
+	fmt.Println(r)
+	req.Header.Add("Range", r)
+
+	err = os.MkdirAll(filepath.Dir(myfilepath), 0755)
 	errcheck(err)
 	file, err := os.Create(myfilepath)
 	errcheck(err)
-	resp, err := http.Get(link)
+	resp, err := c.Do(req)
 	errcheck(err)
 	defer resp.Body.Close()
 	size, err := io.Copy(file, resp.Body)
 	errcheck(err)
 	fmt.Printf("Downloaded file: %s with size %d\n", filepath.Base(myfilepath), size)
 
+	errcheck(err)
+	fmt.Println(resp.Status)
 }
 
 func getactualfilesize(url string) int64 {
@@ -84,8 +99,7 @@ func getlocalfilesize(filepath string) int64 {
 // "http://znucomputer.ir/HTML/Semester6/artificial_intelligence.html"
 // "/home/mamad/Downloads"
 
-func main() {
-	var links []string
+func userInput() (string, string) {
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -97,19 +111,22 @@ func main() {
 	fmt.Print("Enter the file path to save the downloaded file: ")
 
 	myfilepath, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading file path:", err)
-		return
-	}
+	errcheck(err)
 	myfilepath = strings.TrimSpace(myfilepath)
+	return theurl, myfilepath
+}
 
-	fmt.Println(theurl, myfilepath)
+func main() {
+	var links []string
+
+	theurl, myfilepath := "http://znucomputer.ir/HTML/Semester6/artificial_intelligence.html", "/home/mamad/Downloads"
+
 	getLinks(&links, theurl)
 
 	filename := getfilenames(theurl)
 	for i, v := range links {
+		fmt.Println(i, v)
 		name := fmt.Sprintf("%s/%s/%s%d", myfilepath, filename, filename, i)
 		downloadFile(v, name)
 	}
-
 }
