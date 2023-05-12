@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gocolly/colly"
 )
@@ -65,7 +66,7 @@ func downloadFile(link, myfilepath string) {
 
 	r := fmt.Sprintf("bytes=%d-%d", localSize, actualSize-1)
 	req.Header.Add("Range", r)
-
+	start := time.Now()
 	err = os.MkdirAll(filepath.Dir(myfilepath), 0755)
 	errcheck(err)
 	file, err := os.OpenFile(myfilepath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
@@ -75,7 +76,8 @@ func downloadFile(link, myfilepath string) {
 	defer resp.Body.Close()
 	size, err := io.Copy(file, resp.Body)
 	errcheck(err)
-	fmt.Printf("\n\tDownloaded file: %s with size %d\n\n", filepath.Base(myfilepath), size/1048576)
+	elapsed := time.Since(start)
+	fmt.Printf("\n\tDownloaded file: %s with size %d in %v\n\n", filepath.Base(myfilepath), size/1048576, elapsed)
 
 	errcheck(err)
 }
@@ -108,7 +110,7 @@ func userInput() (string, string) {
 	errcheck(err)
 
 	theurl = strings.TrimSpace(theurl)
-	fmt.Print("Enter the file path to save the downloaded file: ")
+	fmt.Print("Enter the file absolute path to save the downloaded file: ")
 
 	myfilepath, err := reader.ReadString('\n')
 	errcheck(err)
@@ -119,7 +121,7 @@ func userInput() (string, string) {
 func main() {
 	var links []string
 
-	theurl, myfilepath := "http://znucomputer.ir/HTML/Semester6/artificial_intelligence.html", "/home/mamad/Downloads"
+	theurl, myfilepath := userInput()
 
 	getLinks(&links, theurl)
 
