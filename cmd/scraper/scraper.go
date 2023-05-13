@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
-	"os"
-	"strings"
+	"os/user"
+	"path/filepath"
 
 	"scraper.go/download"
 	"scraper.go/page"
@@ -13,18 +12,6 @@ import (
 
 // "http://znucomputer.ir/HTML/Semester6/artificial_intelligence.html"
 // "/home/mamad/Downloads"
-
-func userInput() string {
-
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("Enter the file path to save the downloaded file: ")
-
-	myfilepath, err := reader.ReadString('\n')
-	download.Errcheck(err)
-	myfilepath = strings.TrimSpace(myfilepath)
-	return myfilepath
-}
 func userInput2(list *[]map[string]string) int {
 	var a int
 	fmt.Printf("choose the class you want to download\n\n")
@@ -48,7 +35,12 @@ func getList(class *map[string]string, list *[]map[string]string) {
 }
 func main() {
 	var list []map[string]string
-	var theurl string
+	var theurl, myfilepath string
+
+	currentUser, err := user.Current()
+	download.Errcheck(err)
+	downloadsPath := filepath.Join(currentUser.HomeDir, "Downloads/lessons")
+
 	class := page.GetPages()
 	getList(class, &list)
 	a := userInput2(&list)
@@ -62,9 +54,11 @@ func main() {
 
 	var links []string
 
-	myfilepath := userInput()
-
+	myfilepath = downloadsPath
 	download.GetLinks(&links, theurl)
+	if len(links) == 0 {
+		log.Fatal("there is nothing to download")
+	}
 
 	filename := download.Getfilenames(theurl)
 	for i, v := range links {

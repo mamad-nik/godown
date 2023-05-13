@@ -32,6 +32,9 @@ func GetLinks(links *[]string, theurl string) {
 
 	c.OnHTML("[data-href]", func(h *colly.HTMLElement) {
 		*links = append(*links, h.Attr("data-href"))
+		if len(*links) == 0 {
+			log.Fatal("there is nothing to download")
+		}
 	})
 
 	c.Visit(theurl)
