@@ -14,21 +14,16 @@ import (
 // "http://znucomputer.ir/HTML/Semester6/artificial_intelligence.html"
 // "/home/mamad/Downloads"
 
-func userInput() (string, string) {
+func userInput() string {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("enter URL of the page you want to download from: ")
-	theurl, err := reader.ReadString('\n')
-	download.Errcheck(err)
-
-	theurl = strings.TrimSpace(theurl)
 	fmt.Print("Enter the file path to save the downloaded file: ")
 
 	myfilepath, err := reader.ReadString('\n')
 	download.Errcheck(err)
 	myfilepath = strings.TrimSpace(myfilepath)
-	return theurl, myfilepath
+	return myfilepath
 }
 func userInput2(list *[]map[string]string) int {
 	var a int
@@ -67,7 +62,7 @@ func main() {
 
 	var links []string
 
-	myfilepath := "/home/mamad/Downloads"
+	myfilepath := userInput()
 
 	download.GetLinks(&links, theurl)
 
